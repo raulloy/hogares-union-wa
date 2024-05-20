@@ -1,3 +1,6 @@
+// import fs from 'fs';
+// const myConsole = new console.Console(fs.createWriteStream('./logs.txt'));
+
 export const verifyToken = (req, res) => {
   try {
     const verifyToken = 'IronMan';
@@ -20,5 +23,18 @@ export const verifyToken = (req, res) => {
 };
 
 export const receivedMessage = (req, res) => {
-  res.send('Message received');
+  try {
+    const entry = req.body['entry'][0];
+    const changes = entry['changes'][0];
+    const value = changes['value'];
+    const messageObject = value['messages'];
+    const messages = messageObject[0];
+    const text = messages.text.body;
+
+    console.log(text);
+
+    res.status(200).send('EVENT_RECEIVED');
+  } catch (error) {
+    res.status(200).send('EVENT_RECEIVED');
+  }
 };
