@@ -17,8 +17,6 @@ export const verifyToken = (req, res) => {
   } catch (error) {
     res.status(400).send();
   }
-
-  res.send('Token verified');
 };
 
 export const receivedMessage = (req, res) => {
