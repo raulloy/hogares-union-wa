@@ -1,4 +1,5 @@
 import Thread from '../models/thread.js';
+import { sendWhatsAppMessage } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 
 export const verifyToken = (req, res) => {
@@ -48,6 +49,15 @@ export const receivedMessage = async (req, res) => {
 
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
+
+    // Send the AI response back to the user via WhatsApp
+    const sendMessageResult = await sendWhatsAppMessage(userId, response);
+    if (sendMessageResult) {
+      console.log('Response sent to user via WhatsApp');
+    } else {
+      console.log('Failed to send response to user via WhatsApp');
+    }
+
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
     console.error(`Error in receivedMessage function: ${error.message}`);
