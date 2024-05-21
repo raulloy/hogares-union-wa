@@ -1,3 +1,4 @@
+import Thread from '../models/thread.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 
 export const verifyToken = (req, res) => {
@@ -29,37 +30,27 @@ export const receivedMessage = async (req, res) => {
     const messageObject = value['messages'];
     const messages = messageObject[0];
     const text = messages.text.body;
+    const userId = messages.from;
 
-    console.log(`Received message: ${text}`);
+    console.log(`Received message: ${text} from user: ${userId}`);
 
-    const threadId = await createThread();
+    let thread = await Thread.findOne({ userId });
 
-    if (threadId) {
-      const response = await aiResponse(threadId, text);
-      console.log(`Assistant response: ${response}`);
-      res.status(200).send('EVENT_RECEIVED');
-    } else {
-      res.status(500).send('Error creating thread');
+    if (!thread) {
+      const threadId = await createThread();
+      if (!threadId) {
+        res.status(500).send('Error creating thread');
+        return;
+      }
+      thread = new Thread({ userId, threadId });
+      await thread.save();
     }
+
+    const response = await aiResponse(thread.threadId, text);
+    console.log(`Assistant response: ${response}`);
+    res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
     console.error(`Error in receivedMessage function: ${error.message}`);
     res.status(200).send('EVENT_RECEIVED');
   }
 };
-
-// export const receivedMessage = (req, res) => {
-//   try {
-//     const entry = req.body['entry'][0];
-//     const changes = entry['changes'][0];
-//     const value = changes['value'];
-//     const messageObject = value['messages'];
-//     const messages = messageObject[0];
-//     const text = messages.text.body;
-
-//     console.log(text);
-
-//     res.status(200).send('EVENT_RECEIVED');
-//   } catch (error) {
-//     res.status(200).send('EVENT_RECEIVED');
-//   }
-// };
