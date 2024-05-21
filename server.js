@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import axios from 'axios';
 
 import whatsAppRouter from './routes/routes.js';
 
