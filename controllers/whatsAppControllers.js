@@ -1,5 +1,5 @@
 import Thread from '../models/thread.js';
-import { sendWhatsAppMessage } from '../server.js';
+import { io, sendWhatsAppMessage } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 
 export const verifyToken = (req, res) => {
@@ -57,6 +57,10 @@ export const receivedMessage = async (req, res) => {
     } else {
       console.log('Failed to send response to user via WhatsApp');
     }
+
+    // Emit the messages to the frontend
+    io.emit('userMessage', { message: text });
+    io.emit('aiResponse', { response: response });
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
