@@ -53,7 +53,6 @@ export const receivedMessage = async (req, res) => {
     // Emit the messages to the frontend with the correct userId
     io.emit('userMessage', { message: text, userId: userId });
     io.emit('aiResponse', { response: response, userId: userId });
-    io.emit('userId', { userId });
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
@@ -65,6 +64,7 @@ export const receivedMessage = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const { userId, message } = req.body;
+    console.log(`Sending message to: ${userId}, message: ${message}`);
     const sendMessageResult = await sendWhatsAppMessage(userId, message);
     if (sendMessageResult) {
       console.log('Response sent to user via WhatsApp');

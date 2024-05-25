@@ -59,6 +59,7 @@ export const sendWhatsAppMessage = async (to, message) => {
       `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
       {
         messaging_product: 'whatsapp',
+        recipient_type: 'individual',
         to: to,
         type: 'text',
         text: {
