@@ -60,3 +60,20 @@ export const receivedMessage = async (req, res) => {
     res.status(200).send('EVENT_RECEIVED');
   }
 };
+
+export const sendMessage = async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+    const sendMessageResult = await sendWhatsAppMessage(userId, message);
+    if (sendMessageResult) {
+      console.log('Response sent to user via WhatsApp');
+      res.status(200).send('Message sent');
+    } else {
+      console.log('Failed to send response to user via WhatsApp');
+      res.status(500).send('Failed to send message');
+    }
+  } catch (error) {
+    console.error(`Error in sendMessage function: ${error.message}`);
+    res.status(500).send('Error sending message');
+  }
+};
