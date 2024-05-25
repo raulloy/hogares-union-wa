@@ -50,14 +50,6 @@ export const receivedMessage = async (req, res) => {
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
 
-    // Send the AI response back to the user via WhatsApp
-    const sendMessageResult = await sendWhatsAppMessage(userId, response);
-    if (sendMessageResult) {
-      console.log('Response sent to user via WhatsApp');
-    } else {
-      console.log('Failed to send response to user via WhatsApp');
-    }
-
     // Emit the messages to the frontend
     io.emit('userMessage', { message: text });
     io.emit('aiResponse', { response: response });
