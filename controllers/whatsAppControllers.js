@@ -53,6 +53,7 @@ export const receivedMessage = async (req, res) => {
     // Emit the messages to the frontend with the correct userId
     io.emit('userMessage', { message: text, userId: userId });
     io.emit('aiResponse', { response: response, userId: userId });
+    io.emit('userId', { userId });
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {

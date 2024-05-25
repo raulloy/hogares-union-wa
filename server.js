@@ -42,9 +42,9 @@ app.use('/api/wa', whatsAppRouter);
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
-  const userId = socket.id;
+  // const userId = socket.id;
 
-  socket.emit('userId', { userId });
+  // socket.emit('userId', { userId });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
