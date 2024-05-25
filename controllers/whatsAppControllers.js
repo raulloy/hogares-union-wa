@@ -52,7 +52,7 @@ export const receivedMessage = async (req, res) => {
 
     // Emit the messages to the frontend
     io.emit('userMessage', { message: text });
-    io.emit('aiResponse', { response: response });
+    io.emit('aiResponse', { response: response, userId: userId });
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
