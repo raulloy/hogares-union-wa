@@ -3,7 +3,7 @@ import axios from 'axios';
 
 import Thread from '../models/thread.js';
 import Message from '../models/message.js'; // Import the Message model
-import { io, sendWhatsAppMessage } from '../server.js';
+import { io } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 
 dotenv.config();
@@ -119,7 +119,7 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-export const sendWhatsAppMessage = async (to, message) => {
+const sendWhatsAppMessage = async (to, message) => {
   try {
     const response = await axios.post(
       `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
