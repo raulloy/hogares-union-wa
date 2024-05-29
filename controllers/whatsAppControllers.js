@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import axios from 'axios';
 
 import Thread from '../models/thread.js';
-import Message from '../models/message.js'; // Import the Message model
+import Message from '../models/message.js';
 import { io } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 
@@ -66,13 +66,6 @@ export const receivedMessage = async (req, res) => {
 
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
-
-    // Save AI response message to the database
-    const aiMessage = new Message({
-      message: response,
-      msgByUserId: thread._id, // Reference the thread
-    });
-    await aiMessage.save();
 
     // Emit the messages to the frontend with the correct userId
     io.emit('userMessage', { message: text, userId: userId });
