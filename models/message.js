@@ -3,11 +3,12 @@ import mongoose from 'mongoose';
 const MessageSchema = new mongoose.Schema(
   {
     message: { type: String, required: true },
-    msgByUserId: {
-      type: mongoose.Schema.Types.ObjectId,
+    threadId: {
+      type: mongoose.Schema.ObjectId,
       required: true,
       ref: 'Thread',
     },
+    userId: { type: String, required: true },
   },
   {
     timestamps: true,

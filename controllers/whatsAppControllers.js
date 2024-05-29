@@ -60,7 +60,8 @@ export const receivedMessage = async (req, res) => {
     // Save received message to the database
     const receivedMessage = new Message({
       message: text,
-      msgByUserId: thread._id, // Reference the thread
+      threadId: thread._id, // Reference the thread
+      userId: userId,
     });
     await receivedMessage.save();
 
@@ -97,7 +98,8 @@ export const sendMessage = async (req, res) => {
       // Save the sent message to the database
       const sentMessage = new Message({
         message,
-        msgByUserId: thread._id, // Reference the thread
+        threadId: thread._id, // Reference the thread
+        userId: phoneNumberId,
       });
       await sentMessage.save();
 
