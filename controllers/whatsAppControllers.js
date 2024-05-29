@@ -1,6 +1,16 @@
+import dotenv from 'dotenv';
+import axios from 'axios';
+
 import Thread from '../models/thread.js';
+import Message from '../models/message.js'; // Import the Message model
 import { io, sendWhatsAppMessage } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
+
+dotenv.config();
+
+const version = process.env.WA_API_VERSION;
+const phoneNumberId = process.env.WA_PHONE_NUMBER_ID;
+const accessToken = process.env.WA_API_KEY;
 
 export const verifyToken = (req, res) => {
   try {
@@ -47,8 +57,22 @@ export const receivedMessage = async (req, res) => {
       await thread.save();
     }
 
+    // Save received message to the database
+    const receivedMessage = new Message({
+      message: text,
+      msgByUserId: thread._id, // Reference the thread
+    });
+    await receivedMessage.save();
+
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
+
+    // Save AI response message to the database
+    const aiMessage = new Message({
+      message: response,
+      msgByUserId: thread._id, // Reference the thread
+    });
+    await aiMessage.save();
 
     // Emit the messages to the frontend with the correct userId
     io.emit('userMessage', { message: text, userId: userId });
@@ -65,9 +89,25 @@ export const sendMessage = async (req, res) => {
   try {
     const { userId, message } = req.body;
     console.log(`Sending message to: ${userId}, message: ${message}`);
+
     const sendMessageResult = await sendWhatsAppMessage(userId, message);
     if (sendMessageResult) {
       console.log('Response sent to user via WhatsApp');
+
+      // Find the thread by userId
+      let thread = await Thread.findOne({ userId });
+      if (!thread) {
+        res.status(500).send('Thread not found');
+        return;
+      }
+
+      // Save the sent message to the database
+      const sentMessage = new Message({
+        message,
+        msgByUserId: thread._id, // Reference the thread
+      });
+      await sentMessage.save();
+
       res.status(200).send('Message sent');
     } else {
       console.log('Failed to send response to user via WhatsApp');
@@ -76,5 +116,37 @@ export const sendMessage = async (req, res) => {
   } catch (error) {
     console.error(`Error in sendMessage function: ${error.message}`);
     res.status(500).send('Error sending message');
+  }
+};
+
+export const sendWhatsAppMessage = async (to, message) => {
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/${version}/${phoneNumberId}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: to,
+        type: 'text',
+        text: {
+          body: message,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    console.log('Message sent:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      'Error sending message:',
+      error.response ? error.response.data : error.message
+    );
+    return null;
   }
 };
