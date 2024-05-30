@@ -155,3 +155,13 @@ export const fetchMessages = async (req, res) => {
     res.status(500).send('Error fetching messages');
   }
 };
+
+export const fetchThreads = async (req, res) => {
+  try {
+    const messages = await Thread.find();
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).send('Error fetching messages');
+  }
+};
