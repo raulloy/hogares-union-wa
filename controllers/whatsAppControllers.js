@@ -147,8 +147,9 @@ const sendWhatsAppMessage = async (to, message) => {
 };
 
 export const fetchMessages = async (req, res) => {
+  const { userId } = req.query;
   try {
-    const messages = await Message.find();
+    const messages = await Message.find({ userId });
     res.json(messages);
   } catch (error) {
     console.error('Error fetching messages:', error);
