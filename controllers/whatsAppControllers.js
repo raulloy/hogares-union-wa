@@ -167,7 +167,7 @@ export const fetchMessages = async (req, res) => {
   const { threadId } = req.query;
   try {
     const messages = await Message.find({ threadId }).sort({ createdAt: 1 });
-    const aiResponses = await AIResponse.find({ threadId, seen: false }).sort({
+    const aiResponses = await AIResponse.find({ threadId }).sort({
       createdAt: 1,
     });
 
