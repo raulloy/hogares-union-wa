@@ -171,13 +171,21 @@ export const fetchMessages = async (req, res) => {
       createdAt: 1,
     });
 
-    // Mark AI responses as seen
-    await AIResponse.updateMany({ threadId, seen: false }, { seen: true });
-
     res.json({ messages, aiResponses });
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).send('Error fetching messages');
+  }
+};
+
+export const markSeen = async (req, res) => {
+  const { threadId } = req.body;
+  try {
+    await AIResponse.updateMany({ threadId, seen: false }, { seen: true });
+    res.status(200).send('AI responses marked as seen');
+  } catch (error) {
+    console.error('Error marking AI responses as seen:', error);
+    res.status(500).send('Error marking AI responses as seen');
   }
 };
 
