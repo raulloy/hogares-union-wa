@@ -1,3 +1,4 @@
+// Message.js
 import mongoose from 'mongoose';
 
 const MessageSchema = new mongoose.Schema(
@@ -9,6 +10,7 @@ const MessageSchema = new mongoose.Schema(
       ref: 'Thread',
     },
     userId: { type: String, required: true },
+    aiResponseId: { type: mongoose.Schema.ObjectId, ref: 'AIResponse' },
   },
   {
     timestamps: true,
