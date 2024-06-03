@@ -68,9 +68,17 @@ export const receivedMessage = async (req, res) => {
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
 
-    // Emit the messages to the frontend with the correct userId
-    io.emit('userMessage', { message: text, userId: userId });
-    io.emit('aiResponse', { response: response, userId: userId });
+    // Emit the messages to the frontend with the correct userId and threadId
+    io.emit('userMessage', {
+      message: text,
+      userId: userId,
+      threadId: thread._id,
+    });
+    io.emit('aiResponse', {
+      response: response,
+      userId: userId,
+      threadId: thread._id,
+    });
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
