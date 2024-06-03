@@ -5,6 +5,7 @@ import Thread from '../models/thread.js';
 import Message from '../models/message.js';
 import { io } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
+import AIResponse from '../models/aiResponse.js';
 
 dotenv.config();
 
@@ -67,6 +68,14 @@ export const receivedMessage = async (req, res) => {
 
     const response = await aiResponse(thread.threadId, text);
     console.log(`Assistant response: ${response}`);
+
+    // Save AI response to the database
+    const aiResponse = new AIResponse({
+      response: response,
+      threadId: thread._id, // Reference the thread
+      userId: userId,
+    });
+    await aiResponse.save();
 
     // Emit the messages to the frontend with the correct userId and threadId
     io.emit('userMessage', {
@@ -157,8 +166,15 @@ const sendWhatsAppMessage = async (to, message) => {
 export const fetchMessages = async (req, res) => {
   const { threadId } = req.query;
   try {
-    const messages = await Message.find({ threadId });
-    res.json(messages);
+    const messages = await Message.find({ threadId }).sort({ createdAt: 1 });
+    const aiResponses = await AIResponse.find({ threadId, seen: false }).sort({
+      createdAt: 1,
+    });
+
+    // Mark AI responses as seen
+    await AIResponse.updateMany({ threadId, seen: false }, { seen: true });
+
+    res.json({ messages, aiResponses });
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).send('Error fetching messages');
