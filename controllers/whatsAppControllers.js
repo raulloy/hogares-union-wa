@@ -70,12 +70,12 @@ export const receivedMessage = async (req, res) => {
     console.log(`Assistant response: ${response}`);
 
     // Save AI response to the database
-    const aiResponse = new AIResponse({
+    const aiResponseEntry = new AIResponse({
       response: response,
       threadId: thread._id, // Reference the thread
       userId: userId,
     });
-    await aiResponse.save();
+    await aiResponseEntry.save();
 
     // Emit the messages to the frontend with the correct userId and threadId
     io.emit('userMessage', {
