@@ -189,6 +189,24 @@ export const markSeen = async (req, res) => {
   }
 };
 
+export const fetchUnseenAIResponses = async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const threads = await Thread.find({ userId });
+    if (threads.length === 0) {
+      return res.json({ unseen: false });
+    }
+
+    const threadId = threads[0]._id;
+    const unseenResponses = await AIResponse.find({ threadId, seen: false });
+
+    res.json({ unseen: unseenResponses.length > 0 });
+  } catch (error) {
+    console.error('Error fetching unseen AI responses:', error);
+    res.status(500).send('Error fetching unseen AI responses');
+  }
+};
+
 export const fetchThreads = async (req, res) => {
   try {
     const messages = await Thread.find();
