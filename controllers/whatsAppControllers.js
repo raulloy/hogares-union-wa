@@ -218,7 +218,7 @@ export const fetchThreads = async (req, res) => {
 };
 
 export const fetchThread = async (req, res) => {
-  const { threadId } = req.body;
+  const { threadId } = req.query;
   try {
     const thread = await Thread.findById(threadId);
     res.json(thread);
