@@ -216,3 +216,22 @@ export const fetchThreads = async (req, res) => {
     res.status(500).send('Error fetching messages');
   }
 };
+
+export const toggleMode = async (req, res) => {
+  const { threadId } = req.body;
+
+  try {
+    const thread = await Thread.findById(threadId);
+    if (!thread) {
+      return res.status(404).send('Thread not found');
+    }
+
+    thread.mode = thread.mode === 'assisted' ? 'automatic' : 'assisted';
+    await thread.save();
+
+    res.status(200).send(`Mode switched to ${thread.mode}`);
+  } catch (error) {
+    console.error('Error toggling mode:', error);
+    res.status(500).send('Error toggling mode');
+  }
+};
