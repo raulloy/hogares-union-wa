@@ -217,6 +217,17 @@ export const fetchThreads = async (req, res) => {
   }
 };
 
+export const fetchThread = async (req, res) => {
+  const { threadId } = req.body;
+  try {
+    const thread = await Thread.findById(threadId);
+    res.json(thread);
+  } catch (error) {
+    console.error('Error fetching thread:', error);
+    res.status(500).send('Error fetching thread');
+  }
+};
+
 export const toggleMode = async (req, res) => {
   const { threadId } = req.body;
 

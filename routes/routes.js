@@ -8,6 +8,7 @@ import {
   markSeen,
   fetchUnseenAIResponses,
   toggleMode,
+  fetchThread,
 } from '../controllers/whatsAppControllers.js';
 
 const whatsAppRouter = express.Router();
@@ -18,6 +19,7 @@ whatsAppRouter.post('/send', sendMessage);
 
 whatsAppRouter.get('/messages', fetchMessages);
 whatsAppRouter.get('/threads', fetchThreads);
+whatsAppRouter.get('/thread', fetchThread);
 whatsAppRouter.post('/mark-seen', markSeen);
 whatsAppRouter.get('/unseen-ai-responses', fetchUnseenAIResponses);
 whatsAppRouter.post('/toggle-mode', toggleMode);
