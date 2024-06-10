@@ -67,7 +67,11 @@ export const receivedMessage = async (req, res) => {
     await receivedMessage.save();
 
     const response = await aiResponse(thread.threadId, text);
-    console.log(`Assistant response: ${response}`);
+    console.log(thread.mode);
+
+    if (thread.mode === 'automatic') {
+      await sendMessageHelper(userId, response, thread._id);
+    }
 
     // Save AI response to the database
     const aiResponseEntry = new AIResponse({
@@ -96,34 +100,42 @@ export const receivedMessage = async (req, res) => {
   }
 };
 
+const sendMessageHelper = async (userId, message, threadId) => {
+  console.log(`Sending message to: ${userId}, message: ${message}`);
+  const sendMessageResult = await sendWhatsAppMessage(userId, message);
+
+  if (sendMessageResult) {
+    console.log('Response sent to user via WhatsApp');
+
+    // Save the sent message to the database
+    const sentMessage = new Message({
+      message,
+      threadId, // Reference the thread
+      userId: phoneNumberId,
+    });
+    await sentMessage.save();
+
+    return 'Message sent';
+  } else {
+    console.log('Failed to send response to user via WhatsApp');
+    return 'Failed to send message';
+  }
+};
+
 export const sendMessage = async (req, res) => {
   try {
     const { userId, message } = req.body;
-    console.log(`Sending message to: ${userId}, message: ${message}`);
+    let thread = await Thread.findOne({ userId });
+    if (!thread) {
+      res.status(500).send('Thread not found');
+      return;
+    }
 
-    const sendMessageResult = await sendWhatsAppMessage(userId, message);
-    if (sendMessageResult) {
-      console.log('Response sent to user via WhatsApp');
-
-      // Find the thread by userId
-      let thread = await Thread.findOne({ userId });
-      if (!thread) {
-        res.status(500).send('Thread not found');
-        return;
-      }
-
-      // Save the sent message to the database
-      const sentMessage = new Message({
-        message,
-        threadId: thread._id, // Reference the thread
-        userId: phoneNumberId,
-      });
-      await sentMessage.save();
-
-      res.status(200).send('Message sent');
+    const result = await sendMessageHelper(userId, message, thread._id);
+    if (result === 'Message sent') {
+      res.status(200).send(result);
     } else {
-      console.log('Failed to send response to user via WhatsApp');
-      res.status(500).send('Failed to send message');
+      res.status(500).send(result);
     }
   } catch (error) {
     console.error(`Error in sendMessage function: ${error.message}`);
