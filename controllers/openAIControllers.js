@@ -37,7 +37,7 @@ export const aiResponse = async (threadId, userInput) => {
 
     // Running the Assistant
     const run = await openai.beta.threads.runs.create(threadId, {
-      assistant_id: 'asst_BdyD9Gn5zC0srMe3LqMFxlBG',
+      assistant_id: 'asst_74UYtN4MF2A5pnBzQafAki5j',
     });
 
     let runStatus;

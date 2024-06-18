@@ -6,6 +6,7 @@ import Message from '../models/message.js';
 import { io } from '../server.js';
 import { aiResponse, createThread } from './openAIControllers.js';
 import AIResponse from '../models/aiResponse.js';
+import { templateText } from '../utils.js';
 
 dotenv.config();
 
@@ -258,3 +259,58 @@ export const toggleMode = async (req, res) => {
     res.status(500).send('Error toggling mode');
   }
 };
+
+const sendTemplateMessage = async (phoneNumber, templateName) => {
+  const url = `https://graph.facebook.com/${version}/${phoneNumberId}/messages`;
+
+  const payload = {
+    messaging_product: 'whatsapp',
+    to: phoneNumber,
+    type: 'template',
+    template: {
+      name: templateName,
+      language: {
+        code: 'es_MX',
+      },
+      components: [],
+    },
+  };
+
+  try {
+    let userId = phoneNumber;
+    let thread = await Thread.findOne({ userId });
+
+    if (!thread) {
+      const threadId = await createThread();
+      if (!threadId) {
+        console.error('Error creating thread');
+        return;
+      }
+      thread = new Thread({ userId, threadId });
+      await thread.save();
+    }
+
+    const response = await axios.post(url, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    console.log('Template message sent successfully:', response.data);
+
+    // Save the sent template message to the database
+    const sentTemplateMessage = new Message({
+      message: templateText,
+      threadId: thread._id,
+      userId: '259295097276676',
+    });
+    await sentTemplateMessage.save();
+  } catch (error) {
+    console.error(
+      'Error sending template message:',
+      error.response ? error.response.data : error.message
+    );
+  }
+};
+
+// sendTemplateMessage('5215545096630', 'bienvenida_mkt');
