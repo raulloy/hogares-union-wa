@@ -3,20 +3,21 @@ import {
   receivedMessage,
   verifyToken,
   sendMessage,
+} from '../controllers/whatsApp.js';
+import {
   fetchMessages,
-  fetchThreads,
-  markSeen,
-  fetchUnseenAIResponses,
-  toggleMode,
   fetchThread,
-} from '../controllers/whatsAppControllers.js';
+  fetchThreads,
+  fetchUnseenAIResponses,
+  markSeen,
+  toggleMode,
+} from '../controllers/mongoDB.js';
 
 const whatsAppRouter = express.Router();
 
 whatsAppRouter.get('/', verifyToken);
 whatsAppRouter.post('/', receivedMessage);
 whatsAppRouter.post('/send', sendMessage);
-
 whatsAppRouter.get('/messages', fetchMessages);
 whatsAppRouter.get('/threads', fetchThreads);
 whatsAppRouter.get('/thread', fetchThread);

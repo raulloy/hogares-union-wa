@@ -40,12 +40,8 @@ io.on('connection', (socket) => {
   });
 });
 
-export { io };
-
 httpServer.listen(port, () => {
   console.log(`Serve at http://localhost:${port}`);
 });
 
-// server.listen(port, () => {
-//   console.log(`Server is running on http://localhost:${port}`);
-// });
+export { io };
