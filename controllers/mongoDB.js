@@ -1,6 +1,7 @@
 import Thread from '../models/thread.js';
 import AIResponse from '../models/aiResponse.js';
 import Message from '../models/message.js';
+import { createThread } from './openAI.js';
 
 export const findOrCreateThread = async (userId) => {
   let thread = await Thread.findOne({ userId });

@@ -4,7 +4,6 @@ import axios from 'axios';
 import Thread from '../models/thread.js';
 import Message from '../models/message.js';
 import { aiResponse, createThread } from './openAI.js';
-import AIResponse from '../models/aiResponse.js';
 import { templateText } from '../utils.js';
 import { findOrCreateThread, saveAIResponse, saveMessage } from './mongoDB.js';
 import { emitMessagesToFrontend } from './sockets.js';
@@ -43,33 +42,57 @@ export const receivedMessage = async (req, res) => {
     const value = changes['value'];
     const messageObject = value['messages'];
     const messages = messageObject[0];
-    const text = messages.text.body;
     const userId = messages.from;
-
-    console.log(`Received message: ${text} from user: ${userId}`);
-
     const thread = await findOrCreateThread(userId);
 
-    await saveMessage(text, thread._id, userId);
+    if (messages.type === 'text') {
+      const text = messages.text.body;
+      console.log(`Received text message: ${text} from user: ${userId}`);
 
-    const response = await aiResponse(thread.threadId, text);
-    console.log(thread.mode);
+      await saveMessage(text, thread._id, userId);
 
-    if (thread.mode === 'automatic') {
-      const sendMessageResult = await sendWhatsAppMessage(userId, response);
-      if (sendMessageResult) {
-        console.log('Response sent to user via WhatsApp');
+      const response = await aiResponse(thread.threadId, text);
+      console.log(thread.mode);
 
-        // Save the sent message to the database
-        await saveMessage(response, thread._id, userId);
-      } else {
-        console.log('Failed to send response to user via WhatsApp');
+      if (thread.mode === 'automatic') {
+        const sendMessageResult = await sendWhatsAppMessage(userId, response);
+        if (sendMessageResult) {
+          console.log('Response sent to user via WhatsApp');
+
+          // Save the sent message to the database
+          await saveMessage(response, thread._id, userId);
+        } else {
+          console.log('Failed to send response to user via WhatsApp');
+        }
       }
+
+      await saveAIResponse(response, thread._id, phoneNumberId);
+
+      emitMessagesToFrontend(req.io, text, response, userId, thread._id);
+    } else if (messages.type === 'audio') {
+      const audioId = messages.audio.id;
+      console.log(
+        `Received voice message with id: ${audioId} from user: ${userId}`
+      );
+
+      await saveMessage('Voice Message', thread._id, userId);
+
+      await sendWhatsAppMessage(
+        userId,
+        'Por el momento no puedo escuchar mensajes de audio, ¿podrías escribir tus preguntas por favor?'
+      );
+    } else {
+      console.log(
+        `Received non-text, non-audio message of type: ${messages.type} from user: ${userId}`
+      );
+
+      await saveMessage('File Message', thread._id, userId);
+
+      await sendWhatsAppMessage(
+        userId,
+        'Por el momento solo puedo procesar mensajes de texto, ¿podrías escribir tus preguntas por favor?'
+      );
     }
-
-    await saveAIResponse(response, thread._id, userId);
-
-    emitMessagesToFrontend(req.io, text, response, userId, thread._id);
 
     res.status(200).send('EVENT_RECEIVED');
   } catch (error) {
@@ -94,7 +117,7 @@ export const sendMessage = async (req, res) => {
       console.log('Response sent to user via WhatsApp');
 
       // Saving the sent message to the database
-      await saveMessage(message, thread._id, userId);
+      await saveMessage(message, thread._id, phoneNumberId);
 
       res.status(200).send('Message sent');
     } else {

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+import { createHubSpotContact } from './hubspot.js';
 
 dotenv.config();
 
@@ -42,8 +43,46 @@ export const aiResponse = async (threadId, userInput) => {
 
     let runStatus;
     do {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       runStatus = await openai.beta.threads.runs.retrieve(threadId, run.id);
+
+      if (runStatus.status === 'requires_action') {
+        const args = JSON.parse(
+          runStatus.required_action.submit_tool_outputs.tool_calls[0].function
+            .arguments
+        );
+        const toolCallId =
+          runStatus.required_action.submit_tool_outputs.tool_calls[0].id;
+        const output = await createHubSpotContact(
+          args.firstname,
+          args.lastname,
+          args.phone,
+          args.email,
+          args.desarrollo
+        );
+
+        if (!output) {
+          await openai.beta.threads.runs.submitToolOutputs(threadId, run.id, {
+            tool_outputs: [
+              {
+                tool_call_id: toolCallId,
+                output: JSON.stringify({
+                  message: 'An error occurred, please try again.',
+                }),
+              },
+            ],
+          });
+        } else {
+          // Proceed to submit the output as before
+          await openai.beta.threads.runs.submitToolOutputs(threadId, run.id, {
+            tool_outputs: [
+              {
+                tool_call_id: toolCallId,
+                output: JSON.stringify(output),
+              },
+            ],
+          });
+        }
+      }
     } while (runStatus.status !== 'completed');
 
     const messages = await openai.beta.threads.messages.list(threadId);
